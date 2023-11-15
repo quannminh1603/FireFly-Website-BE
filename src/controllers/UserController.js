@@ -5,24 +5,25 @@ const createUser = async (req, res) => {
     try {
 
         // console.log(req.body);
-        const {hoTenKH, username, password, confirmPassword, email, diaChi, phone, role} = req.body
+        const {hoTenKH, username, sdt, email, diaChi, password, confirmPassword, role} = req.body
         const reg = /^\w+([-+.']\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$/
         const isCheckEmail = reg.test(email)
-        if(!hoTenKH || !username || !password || !confirmPassword || !email || !diaChi || !phone) {
+        if(!hoTenKH || !username || !sdt || !email || !diaChi || !password || !confirmPassword) {
             return res.status(200).json({
-                status: "ERRO",
-                mesage: "Phải nhập tất cả thông tin!!!"
+                status: "ERR",
+                message: "Phải nhập tất cả thông tin!!!"
             })
-        }else if (!isCheckEmail) {
+        }
+        else if (!isCheckEmail) {
             return res.status(200).json({
-                status: "ERRO",
-                mesage: "Định dạng địa chỉ email không chính xác!!!"
+                status: "ERR",
+                message: "Định dạng địa chỉ email không chính xác!!!"
             })
         }
         else if (password != confirmPassword) {
             return res.status(200).json({
-                status: "ERRO",
-                mesage: "Mật khẩu không khớp nhau, vui lòng nhập lại!!!"
+                status: "ERR",
+                message: "Mật khẩu không khớp nhau, vui lòng nhập lại!!!"
             })
         }
         // console.log('isCheckEmail', isCheckEmail)
@@ -40,30 +41,38 @@ const loginUser = async (req, res) => {
     try {
 
         // console.log(req.body);
-        const {hoTenKH, username, password, confirmPassword, email, diaChi, phone, role} = req.body
-        const reg = /^\w+([-+.']\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$/
-        const isCheckEmail = reg.test(email)
+        const {username, password} = req.body
+        // const reg = /^\w+([-+.']\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$/
+        // const isCheckEmail = reg.test(email)
+        console.log(username, password)
         if(!username || !password) {
             return res.status(200).json({
-                status: "ERRO",
-                mesage: "Phải nhập tất cả thông tin!!!"
+                status: "ERR",
+                message: "Phải nhập tất cả thông tin!!!"
             })
         }
         // else if (!isCheckEmail) {
         //     return res.status(200).json({
-        //         status: "ERRO",
-        //         mesage: "Định dạng địa chỉ email không chính xác!!!"
+        //         status: "ERR",
+        //         message: "Định dạng địa chỉ email không chính xác!!!"
         //     })
         // }
         // else if (password != confirmPassword) {
         //     return res.status(200).json({
-        //         status: "ERRO",
-        //         mesage: "Mật không khớp nhau, vui lòng nhập lại!!!"
+        //         status: "ERR",
+        //         message: "Mật không khớp nhau, vui lòng nhập lại!!!"
         //     })
         // }
         // console.log('isCheckEmail', isCheckEmail)
         const response = await UserService.loginUser(req.body)
-        return res.status(200).json(response)
+        console.log('response', response)
+        const { refresh_token, ...newResponse } = response
+        res.cookie('refresh_token', refresh_token, {
+            HttpOnly: true,
+            Secure: true
+        })
+        return res.status(200).json(newResponse)
+        
     }
     catch (e){
         return res.status(404).json({
@@ -78,8 +87,8 @@ const updateUser = async (req, res) => {
         // const data = req.query.body
         // if(!userId) {
         //     return res.status(200).json({
-        //         status: "ERRO",
-        //         mesage: "Lỗi id!!!"
+        //         status: "ERR",
+        //         message: "Lỗi id!!!"
         //     })
         // }
         // console.log('userId', userId);
@@ -90,7 +99,7 @@ const updateUser = async (req, res) => {
         const data = req.body
         if(!userId) {
             return res.status(200).json({
-                status: "ERRO",
+                status: "ERR",
                 message: "Lỗi id"
             })
         }
@@ -113,7 +122,7 @@ const deleteUser = async (req, res) => {
         // console.log('token', token)
         if(!userId) {
             return res.status(200).json({
-                status: "ERRO",
+                status: "ERR",
                 message: "Lỗi id"
             })
         }
@@ -148,7 +157,7 @@ const getDetailsUser = async (req, res) => {
         // console.log('token', token)
         if(!userId) {
             return res.status(200).json({
-                status: "ERRO",
+                status: "ERR",
                 message: "Lỗi id"
             })
         }
@@ -165,13 +174,14 @@ const getDetailsUser = async (req, res) => {
 }
 
 const refreshToken = async (req, res) => {
+    // console.log('req.cookie', req.cookies);
     try {
-        const token = req.headers.token.split(' ')[1]
+        const token = req.cookies.refresh_token
         // const token = req.headers
         // console.log('token', token)
         if(!token) {
             return res.status(200).json({
-                status: "ERRO",
+                status: "ERR",
                 message: "Token is required"
             })
         }

@@ -3,7 +3,7 @@ const router = express.Router()
 const userController = require('../controllers/UserController')
 const { authMiddleware, authUserMiddleware } = require('../middleware/authMiddleware')
 
-router.post('/', userController.createUser)
+router.post('/register', userController.createUser)
 router.post('/login', userController.loginUser)
 router.put('/update-user/:id', userController.updateUser)
 router.delete('/delete-user/:id', authMiddleware, userController.deleteUser)

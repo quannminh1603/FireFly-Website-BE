@@ -4,14 +4,14 @@ const { genneralAccessToken, genneralRefreshToken } = require('./JwtService')
 
 const createUser = (newUser) => {
     return new Promise(async (resolve, reject) => {
-        const {hoTenKH, username, password, confirmPassword, email, diaChi, phone, role} = newUser
+        const {hoTenKH, username, password, confirmPassword, email, diaChi, sdt, role} = newUser
         try {
             const checkUser = await User.findOne({
                 username: username
             })
             if (checkUser !== null) {
                 resolve({
-                    status: "OK",
+                    status: "ERR",
                     message: "Tên đăng nhập đã tồn tại!!!"
                 })
             }
@@ -20,7 +20,7 @@ const createUser = (newUser) => {
             })
             if (checkEmail !== null) {
                 resolve({
-                    status: "OK",
+                    status: "ERR",
                     message: "Địa chỉ email đã tồn tại!!!"
                 })
             }
@@ -32,7 +32,7 @@ const createUser = (newUser) => {
                 confirmPassword: hash,
                 email,
                 diaChi,
-                phone,
+                sdt,
                 role
             })
             if (createdUser) {
@@ -52,14 +52,14 @@ const createUser = (newUser) => {
 
 const loginUser = (userLogin) => {
     return new Promise(async (resolve, reject) => {
-        const {hoTenKH, username, password, confirmPassword, email, diaChi, phone, role} = userLogin
+        const {username, password} = userLogin
         try {
             const checkUser = await User.findOne({
                 username: username
             })
             if (checkUser === null) {
                 resolve({
-                    status: "OK",
+                    status: "ERR",
                     message: "Tên đăng nhập không tồn tại!!!"
                 })
             }
@@ -67,7 +67,7 @@ const loginUser = (userLogin) => {
             const comparePassword = bcrypt.compareSync(password, checkUser.password)
             if (!comparePassword) {
                 resolve({
-                    status: "OK",
+                    status: "ERR",
                     message: "Tài khoản hoặc mật khẩu không chính xác!!!"
                 })
             }
