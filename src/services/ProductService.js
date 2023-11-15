@@ -1,9 +1,11 @@
 const Product = require('../models/ProductModel')
 const bcrypt = require('bcrypt')
+const Category = require('../models/CategoryModel')
+const CategoryService = require('./CategoryService')
 
 const createProduct = (newProduct) => {
     return new Promise(async (resolve, reject) => {
-        const {tenSanPham, donGia, soLuongConLai, size, type, hinhAnh, rating, description} = newProduct
+        const {tenSanPham, category, donGia, soLuongConLai, size, type, hinhAnh, rating, description} = newProduct
         try {
             const checkProduct = await Product.findOne({
                 tenSanPham: tenSanPham
@@ -16,6 +18,8 @@ const createProduct = (newProduct) => {
             }
             const newProduct = await Product.create({
                 tenSanPham,
+                // add category
+                category,
                 donGia,
                 soLuongConLai,
                 size,
@@ -31,9 +35,8 @@ const createProduct = (newProduct) => {
                     data: newProduct
                 })
             }
-            
-        }
-        catch (e) {
+
+        } catch (e) {
             reject(e);
         }
     })
@@ -45,13 +48,13 @@ const updateProduct = (id, data) => {
             const checkProduct = await Product.findOne({
                 _id: id
             })
-        //    console.log('checkProduct', checkProduct)
-           if(!checkProduct) {
+            //    console.log('checkProduct', checkProduct)
+            if (!checkProduct) {
                 resolve({
                     status: "OK",
                     message: "ID sản phẩm không tồn tại!!!"
                 })
-           }
+            }
             const updateProduct = await Product.findByIdAndUpdate(id, data, {new: true})
             console.log('updateProduct', updateProduct)
             resolve({
@@ -59,10 +62,7 @@ const updateProduct = (id, data) => {
                 message: "SUCCESS",
                 data: updateProduct
             })
-        }
-
-
-        catch (e) {
+        } catch (e) {
             reject(e);
         }
     })
@@ -74,22 +74,19 @@ const deleteProduct = (id) => {
             const checkProduct = await Product.findOne({
                 _id: id
             })
-        //    console.log('checkProduct', checkProduct)
-           if(checkProduct === null) {
+            //    console.log('checkProduct', checkProduct)
+            if (checkProduct === null) {
                 resolve({
                     status: "OK",
                     message: "ID sản phẩm không tồn tại!!!"
                 })
-           }
+            }
             await Product.findByIdAndDelete(id)
             resolve({
                 status: "OK",
                 message: "DELETE PRODUCT SUCCESS",
             })
-        }
-
-
-        catch (e) {
+        } catch (e) {
             reject(e);
         }
     })
@@ -101,12 +98,12 @@ const getAllProduct = (limit, page, sort, filter) => {
     return new Promise(async (resolve, reject) => {
         try {
             const totalProduct = await Product.count()
-            if(filter) {
+            if (filter) {
                 console.log('FILTER')
                 const label = filter[0];
                 console.log('label', label)
 
-                const allProductFilter = await Product.find({ [label]: { '$regex': filter[1] } }).limit(limit).skip(page * limit)
+                const allProductFilter = await Product.find({[label]: {'$regex': filter[1]}}).limit(limit).skip(page * limit)
                 resolve({
                     status: "OK",
                     message: "LẤY THÀNH CÔNG DANH SÁCH SẢN PHẨM",
@@ -116,12 +113,17 @@ const getAllProduct = (limit, page, sort, filter) => {
                     totalPage: Math.ceil(totalProduct / limit)
                 })
             }
-            if(sort) {
+            if (sort) {
                 console.log('SORT')
                 const objectSort = {}
                 objectSort[sort[1]] = sort[0]
                 console.log('objectSort', objectSort)
-                const allProductSort = await Product.find().limit(limit).skip(page * limit).sort(objectSort)
+                const allProductSort = await Product.find()
+                    .limit(limit)
+                    .skip(page * limit)
+                    .sort(objectSort)
+                    .populate("category")
+                    .exec();
                 resolve({
                     status: "OK",
                     message: "LẤY THÀNH CÔNG DANH SÁCH SẢN PHẨM",
@@ -140,10 +142,7 @@ const getAllProduct = (limit, page, sort, filter) => {
                 pageCurrent: page + 1,
                 totalPage: Math.ceil(totalProduct / limit)
             })
-        }
-
-
-        catch (e) {
+        } catch (e) {
             reject(e);
         }
     })
@@ -154,23 +153,20 @@ const getDetailsProduct = (id) => {
         try {
             const product = await Product.findOne({
                 _id: id
-            })
-        //    console.log('product', product)
-           if(product === null) {
+            }).populate("category").exec();
+            //    console.log('product', product)
+            if (product === null) {
                 resolve({
                     status: "OK",
                     message: "ID sản phẩm không tồn tại!!!"
                 })
-           }
+            }
             resolve({
                 status: "OK",
                 message: "Success",
                 data: product
             })
-        }
-
-
-        catch (e) {
+        } catch (e) {
             reject(e);
         }
     })
