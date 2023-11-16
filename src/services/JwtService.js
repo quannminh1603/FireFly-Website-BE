@@ -28,7 +28,7 @@ const refreshTokenJwtService = (token) => {
                 if(err) {
                     resolve({
                         status: 'ERROR',
-                        message: 'The authemtication'
+                        message: 'The authentication'
                     })
                 }
                 const { payload } = user

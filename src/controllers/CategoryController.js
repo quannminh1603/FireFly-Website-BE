@@ -1,6 +1,7 @@
 const CategoryService = require('../services/CategoryService');
 
 const createCategory = async (req, res) => {
+    console.log('req.body', req.body)
     try {
         const {ten, description} = req.body;
         if (!ten || !description) {
